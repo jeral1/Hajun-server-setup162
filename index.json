@@ -1,0 +1,39 @@
+const express = require("express")
+const cors = require("cors")
+const app = express()
+
+app.use(cors())
+app.use(express.json())
+
+const messages = []
+
+app.post("/send", (req, res) => {
+  const b = req.body
+  const m = {
+    id: Date.now(),
+    name: b.name,
+    text: b.text,
+    ts: new Date().toISOString()
+  }
+  messages.push(m)
+
+  console.log(`${m.name}: ${m.text}`) // Prints messages in Railway logs
+
+  if (messages.length > 500) messages.shift()
+  res.json({ ok: true })
+})
+
+app.get("/fetch", (req, res) => {
+  const since = Number(req.query.since) || 0
+  const newMessages = messages.filter(m => m.id > since)
+  res.json({ messages: newMessages })
+})
+
+app.get("/", (req, res) => {
+  res.send("🌌 Hajun Chat Server is running!")
+})
+
+const PORT = process.env.PORT || 3000
+app.listen(PORT, () => {
+  console.log(`🌌 Hajun Chat Server running on port ${PORT}`)
+})
