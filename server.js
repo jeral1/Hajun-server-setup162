@@ -59,3 +59,30 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`🌙 Eternal Nights | FNaF Coop Chat Server running on port ${PORT}`);
 });
+
+let onlineUsers = {};
+
+// POST /join
+app.post("/join", (req, res) => {
+  const name = req.body.name || "Anonymous";
+  onlineUsers[name] = Date.now(); // store timestamp
+  res.json({ ok: true });
+});
+
+// POST /leave
+app.post("/leave", (req, res) => {
+  const name = req.body.name || "Anonymous";
+  delete onlineUsers[name];
+  res.json({ ok: true });
+});
+
+// GET /online
+app.get("/online", (req, res) => {
+  const now = Date.now();
+  // Only count users active in last 5 minutes
+  const activeUsers = Object.entries(onlineUsers)
+    .filter(([_, ts]) => now - ts < 1000 * 60 * 5)
+    .map(([name, _]) => name);
+
+  res.json({ count: activeUsers.length, users: activeUsers });
+});
